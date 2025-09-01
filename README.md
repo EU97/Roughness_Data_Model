@@ -2,6 +2,27 @@
 
 Procesamiento de datos de rugosidad (ISO 4287:1997) e ISO 13565-2 con exportación CSV y gráficas.
 
+## Inicio rápido
+
+```powershell
+# 1) Crear/activar venv y deps
+python -m venv .venv; .\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+
+# 2) Un espécimen (con filtrado ISO 16610 opcional)
+python .\src\Single.py .\data\GrupoI\EspeI --apply-filter --cutoff-mm 0.8 --filter-source primary
+
+# 3) Lote completo (data/)
+python .\src\Batch.py .\data --apply-filter --cutoff-mm 0.8 --filter-source primary
+
+# 4) Comparativas + PDFs
+python .\src\Compare.py .\data --output-dir reports \
+	--metrics Ra Rq Rz_ISO RSm Rpk Rk Rvk Mr1 Mr2 --rank-metric Ra \
+	--make-pdf --make-pdf-filtered --pdf-top-k 2
+```
+
+Salidas clave: CSV/PNG por espécimen en cada carpeta; `batch_summary.json/.csv` en `data/`; reportes y gráficos en `data/reports/` y PDFs opcionales.
+
 ## Requisitos
 
 - Python 3.10 o superior (probado con 3.13)
@@ -72,6 +93,46 @@ El proceso en lote:
 - Genera un resumen `batch_summary.json` con métricas clave por carpeta y los fallos (si los hay).
 - Además exporta `batch_summary.csv` (UTF-8 con BOM) para abrirlo en Excel fácilmente.
 
+### Comparativas y reportes (Compare.py)
+
+A partir del resumen del lote (`batch_summary.json`), se generan comparativas por grupo y entre grupos, rankings y gráficas.
+
+```powershell
+python .\src\Compare.py .\data --output-dir reports --metrics Ra Rq Rz_ISO RSm Rpk Rk Rvk Mr1 Mr2 --rank-metric Ra
+```
+
+Genera en `data/reports`:
+- `group_<Grupo>_summary.csv`: estadísticas por grupo (media, std, min, max) para cada métrica.
+- `group_<Grupo>_ranking_<M>.csv` y `group_<Grupo>_ranking_<M>.png`: ranking por métrica `M` (por defecto `Ra` o la indicada con `--rank-metric`).
+- `groups_comparison_means.csv`: tabla de medias por grupo y métrica.
+- `groups_means_<M>.png`: barras con medias±std por grupo.
+- `groups_boxplot_<M>.png`: boxplots por grupo.
+- `report.md`: resumen en Markdown.
+
+Parámetros clave:
+- `--metrics`: lista de métricas a considerar en tablas/figuras.
+- `--rank-metric`: métrica para ordenar los rankings/figuras de ranking.
+- `--output-dir`: carpeta destino de reportes (por defecto `reports`).
+- `--compute-if-missing`: si no existe `batch_summary.json`, puede calcularlo en caliente (usa `Single.procesar_carpeta`).
+
+### PDF opcional de reportes y PDF filtrado ISO 16610
+
+Se pueden generar dos PDFs:
+- PDF de salidas: compila los rankings por grupo y las gráficas comparativas entre grupos.
+- PDF filtrado ISO 16610: inserta imágenes de `perfil_rugosidad_16610.png` y `curva_portancia_Rk_16610.png` de los Top-K especímenes por grupo según la métrica de ranking.
+
+```powershell
+# Requiere haber ejecutado Batch/Compare y, para el PDF filtrado, Single/Batch con --apply-filter
+python .\src\Compare.py .\data --output-dir reports \
+	--metrics Ra Rq Rz_ISO RSm Rpk Rk Rvk Mr1 Mr2 --rank-metric Ra \
+	--make-pdf --make-pdf-filtered --pdf-out report_outputs.pdf --pdf-filtered-out report_filtered_16610.pdf \
+	--pdf-top-k 2
+```
+
+Notas:
+- Las imágenes filtradas ISO 16610 se generan cuando se ejecuta `Single.py` o `Batch.py` con `--apply-filter`.
+- Puede cambiar `--rank-metric` para priorizar otra métrica (p. ej., `Rk`).
+
 ## Entradas y salidas
 
 - Entradas: archivos tipo Surfcom en la carpeta objetivo
@@ -88,6 +149,7 @@ El proceso en lote:
 
 - Salidas del modo lote (en la raíz):
 	- batch_summary.json: lista de especímenes con `folder`, `csv`, `Ra`, `Rq`, `Rz_ISO`, `RSm`, `Rpk`, `Rk`, `Rvk`, `Mr1`, `Mr2` y lista de `failures`.
+	- batch_summary.csv: igual resumen en CSV (UTF-8 con BOM) apto para Excel.
 
 ## Metodología y normas empleadas
 
@@ -131,3 +193,10 @@ Notas:
 - Los cálculos se realizan sobre el perfil de rugosidad (.tx2). Con `--apply-filter` se obtiene rugosidad a partir del primario conforme a ISO 16610.
 - Codificaciones: entradas en `latin-1` para `.tx*`; salidas CSV con BOM (`utf-8-sig`) para compatibilidad con Excel.
 - `src/Single.py` expone la función `procesar_carpeta(path, ...)` para uso programático.
+
+## Reporte del proyecto
+
+Se incluye `REPORT.md` con:
+- Cómo ejecutar (comandos clave),
+- Quality gates (build/syntax, smoke tests, estilo),
+- Cobertura de requisitos (normas y funciones implementadas).
