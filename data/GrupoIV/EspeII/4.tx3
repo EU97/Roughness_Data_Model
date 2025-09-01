@@ -1,0 +1,155 @@
+Nombre de piezas	
+Nombre tipo	
+Comentario 1	
+Comentario 2	
+Fecha	08.04.2025
+Hora	17:10:35
+Nombre operador	
+Nº lote	
+Nº muestra	47
+Unidad salida	mm,um
+Polaridad	Positivo
+Captador	Captador estándar
+Estándar	ISO '97
+Tipo medición	Aspereza
+Longitud medición	10.0mm
+Onda de corte	2.5mm
+Rango de medida	+/-128.0um
+Velocidad medición	0.3mm/s
+Tipo corte	Gausiano
+Corrección inclinación	Sin corrección
+Mover	3.0mm/s
+Config retorno	Normal
+Recorrido pre/pos	Corte/3*2
+Relación corte Ls	100
+Longitud onda corte Ls	25.0um
+Longitud evaluación	5.4970693mm
+Unidad inclinación A	Grado
+Polaridad inclinación A	C.C.W
+Exclusión perfil parcial	OFF
+Longitud exclusión (izquierda)	0.0000000mm
+Longitud exclusión (derecha)	0.0000000mm
+Cálculo corte	ON
+Longitud borrado	0um
+Límite superior	128.0000000um
+Límite inferior	-128.0000000um
+Guardar auto archivo	
+Archivo automático	
+Archivo condición análisis	CALCOND	
+Archivo salida SPC	SPCFILE.csv	
+Recuento promedio	5
+Unidad nivel corte de curva BC	Relativo(%)
+Método cálculo de curva BC	Longitud evaluación
+Método salida de Tp	Valor individual
+Límite superior recuento picos	0.0000000um
+Límite inferior recuento picos	0.0000000um
+Cálculo altura etapa	OFF
+Longitud borrado	1um
+Longitud referencia	1.0000000um
+Longitud área cálculo	1um
+Cálc. motivo On/Off	OFF
+Long. límite sup. motivo aspereza(A)	0.5000000mm
+Long. límite sup. motivo ondulación(A)	2.5000000mm
+Tipo cálculo	OFF
+h:Prof. Búsqueda	OFF
+m:Margen	OFF
+Wmin:Anchura mín.	OFF
+A:Superficie sup.	OFF
+B:Superficie inf.	OFF
+C:Margen cálc. Profundidad	OFF
+E:Margen excluído	OFF
+Ref. para evaluación.	Estándar
+16% details	Estándar
+Valor de criterio de sección simple	OFF
+Conexión de curvas	Normal
+Spline	10
+Pa	*.*******um	*.*******um
+Pq	*.*******um	*.*******um
+Pp	*.*******um	*.*******um
+Pv	*.*******um	*.*******um
+Pc.I	*.*******um	*.*******um
+PSm	*.*******um	*.*******um
+PDq	*.*******	*.*******
+Psk	*.*******	*.*******
+Pku	*.*******	*.*******
+Ra	*.*******um	*.*******um
+Rq	*.*******um	*.*******um
+Rz	*.*******um	*.*******um
+Rp	*.*******um	*.*******um
+Rv	*.*******um	*.*******um
+Rc	*.*******um	*.*******um
+Rz.J94	*.*******um	*.*******um
+Pt	*.*******um	*.*******um
+Rt	*.*******um	*.*******um
+Rz.J	*.*******um	*.*******um
+R3z	*.*******um	*.*******um
+RSm	*.*******um	*.*******um
+RDa	*.*******	*.*******
+RDq	*.*******	*.*******
+RLa	*.*******um	*.*******um
+RLq	*.*******um	*.*******um
+Tilt A	*.*******grado	*.*******grado
+lr	*.*******%	*.*******%
+Pc	*	*
+Rsk	*.*******	*.*******
+Rku	*.*******	*.*******
+Rk	*.*******um	*.*******um
+Rpk	*.*******um	*.*******um
+Rvk	*.*******um	*.*******um
+Mr1	*.*******%	*.*******%
+Mr2	*.*******%	*.*******%
+VO	*.*******	*.*******
+K	*.*******	*.*******
+AVH	*.*******um	*.*******um
+Hmax	*.*******um	*.*******um
+Hmin	*.*******um	*.*******um
+AREA	*.***um2	*.***um2
+d	*.*******um	*.*******um
+Pmr( 0)	*.*******%	*.*******%
+Pmr( 1)	*.*******%	*.*******%
+Pmr( 2)	*.*******%	*.*******%
+Pmr( 3)	*.*******%	*.*******%
+Pmr( 4)	*.*******%	*.*******%
+Pmr( 5)	*.*******%	*.*******%
+Pmr( 6)	*.*******%	*.*******%
+Pmr( 7)	*.*******%	*.*******%
+Desgaste inicial	*.*******%	*.*******%
+Pmr2( 1)	*.*******%	*.*******%
+Pmr2( 2)	*.*******%	*.*******%
+Pmr2( 3)	*.*******%	*.*******%
+Pmr2( 4)	*.*******%	*.*******%
+Pmr2( 5)	*.*******%	*.*******%
+Pmr2( 6)	*.*******%	*.*******%
+Pmr2( 7)	*.*******%	*.*******%
+Pdc( 0)	*.*******%	*.*******%
+Pdc( 1)	*.*******%	*.*******%
+Pdc( 2)	*.*******%	*.*******%
+Pdc( 3)	*.*******%	*.*******%
+Pdc( 4)	*.*******%	*.*******%
+Pdc( 5)	*.*******%	*.*******%
+Pdc( 6)	*.*******%	*.*******%
+Pdc( 7)	*.*******%	*.*******%
+Rmr( 0)	*.*******%	*.*******%
+Rmr( 1)	*.*******%	*.*******%
+Rmr( 2)	*.*******%	*.*******%
+Rmr( 3)	*.*******%	*.*******%
+Rmr( 4)	*.*******%	*.*******%
+Rmr( 5)	*.*******%	*.*******%
+Rmr( 6)	*.*******%	*.*******%
+Rmr( 7)	*.*******%	*.*******%
+Desgaste inicial	*.*******%	*.*******%
+Rmr2( 1)	*.*******%	*.*******%
+Rmr2( 2)	*.*******%	*.*******%
+Rmr2( 3)	*.*******%	*.*******%
+Rmr2( 4)	*.*******%	*.*******%
+Rmr2( 5)	*.*******%	*.*******%
+Rmr2( 6)	*.*******%	*.*******%
+Rmr2( 7)	*.*******%	*.*******%
+Rdc( 0)	*.*******%	*.*******%
+Rdc( 1)	*.*******%	*.*******%
+Rdc( 2)	*.*******%	*.*******%
+Rdc( 3)	*.*******%	*.*******%
+Rdc( 4)	*.*******%	*.*******%
+Rdc( 5)	*.*******%	*.*******%
+Rdc( 6)	*.*******%	*.*******%
+Rdc( 7)	*.*******%	*.*******%
