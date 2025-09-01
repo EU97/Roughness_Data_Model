@@ -224,6 +224,7 @@ def calcular_parametros_rk(perfil, plot=False, filename='curva_portancia_Rk.png'
         plt.grid(True)
         plt.legend()
         plt.savefig(filename)
+        plt.close()
         print(f"Gráfica '{filename}' guardada correctamente.")
 
     return Rk, Rpk, Rvk, Mr1, Mr2
@@ -357,11 +358,13 @@ def procesar_carpeta(base_dir: str, apply_filter: bool = False, cutoff_mm: float
     plt.figure(figsize=(12, 6)); plt.plot(eje_x_primario, perfil_primario, color='black', lw=1)
     plt.title('Perfil Primario'); plt.xlabel('Distancia (mm)'); plt.ylabel('Altura (µm)')
     plt.grid(True); plt.savefig(os.path.join(base_dir, 'perfil_primario.png'))
+    plt.close()
     print(f"Gráfica '{os.path.join(base_dir, 'perfil_primario.png')}' guardada correctamente.")
 
     plt.figure(figsize=(12, 6)); plt.plot(eje_x_rug, perfil_rugosidad, color='blue', lw=1)
     plt.title('Perfil de Rugosidad'); plt.xlabel('Distancia (mm)'); plt.ylabel('Altura (µm)')
     plt.grid(True); plt.savefig(os.path.join(base_dir, 'perfil_rugosidad.png'))
+    plt.close()
     print(f"Gráfica '{os.path.join(base_dir, 'perfil_rugosidad.png')}' guardada correctamente.")
 
     # --- Perfiles con corrección de pendiente (sin alterar salidas previas) ---
@@ -372,12 +375,14 @@ def procesar_carpeta(base_dir: str, apply_filter: bool = False, cutoff_mm: float
     plt.title('Perfil Primario (corrección de pendiente)')
     plt.xlabel('Distancia (mm)'); plt.ylabel('Altura (µm)')
     plt.grid(True); plt.savefig(os.path.join(base_dir, 'perfil_primario_corr.png'))
+    plt.close()
     print(f"Gráfica '{os.path.join(base_dir, 'perfil_primario_corr.png')}' guardada correctamente.")
 
     plt.figure(figsize=(12, 6)); plt.plot(eje_x_rug, rug_corr, color='blue', lw=1)
     plt.title('Perfil de Rugosidad (corrección de pendiente)')
     plt.xlabel('Distancia (mm)'); plt.ylabel('Altura (µm)')
     plt.grid(True); plt.savefig(os.path.join(base_dir, 'perfil_rugosidad_corr.png'))
+    plt.close()
     print(f"Gráfica '{os.path.join(base_dir, 'perfil_rugosidad_corr.png')}' guardada correctamente.")
 
     # CSV opcionales de perfiles corregidos
@@ -451,13 +456,14 @@ def procesar_carpeta(base_dir: str, apply_filter: bool = False, cutoff_mm: float
         except (OSError, csv.Error) as e:
             print(f"No se pudieron anexar resultados ISO 16610: {e}")
 
-        # Gráfica y CSV del perfil 16610
-        plt.figure(figsize=(12, 6)); plt.plot(x_16610, rug_16610, color='purple', lw=1)
-        plt.title(f'Perfil de Rugosidad (ISO 16610, λc={cutoff_mm} mm)')
-        plt.xlabel('Distancia (mm)'); plt.ylabel('Altura (µm)')
-        plt.grid(True); plt.savefig(os.path.join(base_dir, 'perfil_rugosidad_16610.png'))
-        print(f"Gráfica '{os.path.join(base_dir, 'perfil_rugosidad_16610.png')}' guardada correctamente.")
-        exportar_perfil_csv(x_16610, rug_16610, os.path.join(base_dir, 'perfil_rugosidad_16610.csv'))
+    # Gráfica y CSV del perfil 16610
+    plt.figure(figsize=(12, 6)); plt.plot(x_16610, rug_16610, color='purple', lw=1)
+    plt.title(f'Perfil de Rugosidad (ISO 16610, λc={cutoff_mm} mm)')
+    plt.xlabel('Distancia (mm)'); plt.ylabel('Altura (µm)')
+    plt.grid(True); plt.savefig(os.path.join(base_dir, 'perfil_rugosidad_16610.png'))
+    plt.close()
+    print(f"Gráfica '{os.path.join(base_dir, 'perfil_rugosidad_16610.png')}' guardada correctamente.")
+    exportar_perfil_csv(x_16610, rug_16610, os.path.join(base_dir, 'perfil_rugosidad_16610.csv'))
 
     return {
         'base_dir': base_dir,

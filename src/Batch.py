@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=invalid-name,line-too-long,wrong-import-position
 """
 Procesa en lote todos los grupos y especímenes bajo una carpeta raíz.
 Usa src/Single.py (función procesar_carpeta) para cada espécimen.
@@ -7,6 +8,7 @@ import os
 import sys
 import json
 import csv
+import argparse
 from typing import List, Dict
 
 # Permitir import relativo del módulo Single.py
@@ -30,7 +32,7 @@ def find_specimen_folders(root: str) -> List[str]:
 
 
 def main():
-    import argparse
+    """CLI de procesamiento en lote para rugosidad."""
     parser = argparse.ArgumentParser(description='Procesamiento en lote de rugosidad (ISO 4287/13565-2).')
     parser.add_argument('root', nargs='?', default=None, help='Carpeta raíz con subcarpetas de especímenes (por defecto data/).')
     parser.add_argument('--apply-filter', action='store_true', help='Aplicar filtrado ISO 16610 en cada espécimen.')

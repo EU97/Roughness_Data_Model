@@ -13,3 +13,21 @@ Rk (Profundidad del núcleo funcional),0.662 µm
 Rvk (Profundidad de valles para lubricante),2.558 µm
 Mr1 (%),27.17
 Mr2 (%),56.70
+
+Parámetro (ISO 16610/13565-2),Valor
+Ra (ISO 16610),0.922 µm
+Rq (ISO 16610),1.607 µm
+Rp (ISO 16610),6.724 µm
+Rv (ISO 16610),-9.638 µm
+Rz/Rt (ISO 16610),16.362 µm
+"Rz (ISO 4287:1997, perfil 16610)",6.758 µm
+Rsk (ISO 16610),-0.316
+Rku (ISO 16610),8.935
+RSm (ISO 16610),61.159 µm
+"Rpk (ISO 13565-2, 16610)",0.858 µm
+"Rk (ISO 13565-2, 16610)",0.422 µm
+"Rvk (ISO 13565-2, 16610)",1.004 µm
+"Mr1 (ISO 13565-2, 16610) (%)",35.58
+"Mr2 (ISO 13565-2, 16610) (%)",69.57
+λc (mm),0.800
+Fuente filtrado,primary
