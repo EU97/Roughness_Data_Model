@@ -13,6 +13,7 @@ import csv
 import re
 import os
 import sys
+import glob
 
 # Mejorar salida para acentos/µ: forzar UTF-8 en stdout si es posible
 try:
@@ -250,29 +251,36 @@ def exportar_perfil_csv(eje_x: np.ndarray, perfil: np.ndarray, filepath: str):
             out_writer.writerow([f"{x:.9f}", f"{y:.9f}"])
 
 
-# =============================================================================
-# --- EJECUCIÓN DEL ANÁLISIS ---
-# =============================================================================
-if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser(description='Análisis de rugosidad (ISO 4287:1997 e ISO 13565-2) con opción de filtrado ISO 16610.')
-    parser.add_argument('folder', nargs='?', default=None, help='Carpeta con 3.tx1, 3.tx2, 3.tx3 (por defecto data/GrupoI/EspeI).')
-    parser.add_argument('--apply-filter', action='store_true', help='Aplicar filtrado ISO 16610 a partir del perfil primario para obtener rugosidad.')
-    parser.add_argument('--cutoff-mm', type=float, default=0.8, help='Longitud de corte (λc) en mm para el filtro Gaussiano (p.ej., 0.8, 2.5).')
-    parser.add_argument('--filter-source', choices=['primary', 'roughness'], default='primary', help='Fuente para el filtrado (primary recomendado).')
-    args = parser.parse_args()
+def _find_tx_files(folder_path: str):
+    """Resuelve rutas para .tx1, .tx2, .tx3 en un folder.
+    Preferencia: 3.tx1/3.tx2/3.tx3 si existen; si no, primer *.tx1/*.tx2/*.tx3.
+    Devuelve (tx1, tx2, tx3) o (None, None, None) si faltan.
+    """
+    def pref_or_first(pattern: str, preferred: str):
+        pref_path = os.path.join(folder_path, preferred)
+        if os.path.exists(pref_path):
+            return pref_path
+        matches = sorted(glob.glob(os.path.join(folder_path, pattern)))
+        return matches[0] if matches else None
 
-    # Carpeta a procesar: se puede pasar por argumento; por defecto: data/GrupoI/EspeI
-    default_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data', 'GrupoI', 'EspeI'))
-    base_dir = os.path.abspath(args.folder) if args.folder else default_dir
+    tx1 = pref_or_first('*.tx1', '3.tx1')
+    tx2 = pref_or_first('*.tx2', '3.tx2')
+    tx3 = pref_or_first('*.tx3', '3.tx3')
+    if not (tx1 and tx2 and tx3):
+        return None, None, None
+    return tx1, tx2, tx3
 
+
+def procesar_carpeta(base_dir: str, apply_filter: bool = False, cutoff_mm: float = 0.8, filter_source: str = 'primary') -> dict:
+    """Procesa una carpeta de espécimen y genera salidas en esa carpeta.
+    Retorna un dict con rutas y métricas clave.
+    """
     if not os.path.isdir(base_dir):
-        print(f"Error: La carpeta '{base_dir}' no existe.")
-        sys.exit(1)
+        raise FileNotFoundError(f"La carpeta '{base_dir}' no existe")
 
-    ruta_archivo_config = os.path.join(base_dir, '3.tx3')
-    ruta_archivo_primario = os.path.join(base_dir, '3.tx1')
-    ruta_archivo_rugosidad = os.path.join(base_dir, '3.tx2')
+    ruta_archivo_primario, ruta_archivo_rugosidad, ruta_archivo_config = _find_tx_files(base_dir)
+    if not (ruta_archivo_primario and ruta_archivo_rugosidad and ruta_archivo_config):
+        raise FileNotFoundError(f"No se encontraron archivos .tx1/.tx2/.tx3 en '{base_dir}'")
 
     params = parse_config_file(ruta_archivo_config)
 
@@ -281,8 +289,7 @@ if __name__ == "__main__":
     header_rugosidad = leer_perfil_con_header(ruta_archivo_rugosidad)
 
     if not header_primario or not header_rugosidad:
-        print("Error: No fue posible leer los perfiles primario y/o de rugosidad.")
-        sys.exit(1)
+        raise ValueError("No fue posible leer los perfiles primario y/o de rugosidad.")
 
     long_mm_primario, _, perfil_primario = header_primario
     long_mm_rug, _, perfil_rugosidad = header_rugosidad
@@ -358,8 +365,8 @@ if __name__ == "__main__":
     print(f"Gráfica '{os.path.join(base_dir, 'perfil_rugosidad.png')}' guardada correctamente.")
 
     # --- Perfiles con corrección de pendiente (sin alterar salidas previas) ---
-    prim_corr, m1, b1 = corregir_pendiente(perfil_primario, eje_x_primario)
-    rug_corr, m2, b2 = corregir_pendiente(perfil_rugosidad, eje_x_rug)
+    prim_corr, _, _ = corregir_pendiente(perfil_primario, eje_x_primario)
+    rug_corr, _, _ = corregir_pendiente(perfil_rugosidad, eje_x_rug)
 
     plt.figure(figsize=(12, 6)); plt.plot(eje_x_primario, prim_corr, color='black', lw=1)
     plt.title('Perfil Primario (corrección de pendiente)')
@@ -380,20 +387,20 @@ if __name__ == "__main__":
     print("\nAnálisis finalizado.")
 
     # --- Filtrado ISO 16610 opcional ---
-    if args.apply_filter:
+    if apply_filter:
         # Relación sigma-samples para -3 dB en λc: sigma = 0.1325 * λc; sigma_samples = sigma / dx
         def compute_sigma_samples(x_mm, lambda_c_mm):
             dx = float(x_mm[1] - x_mm[0]) if len(x_mm) > 1 else lambda_c_mm
             sigma_mm = 0.1325 * float(lambda_c_mm)
             return max(0.5, sigma_mm / dx)
 
-        if args.filter_source == 'primary':
-            sigma_samp = compute_sigma_samples(eje_x_primario, args.cutoff_mm)
+        if filter_source == 'primary':
+            sigma_samp = compute_sigma_samples(eje_x_primario, cutoff_mm)
             waviness = gaussian_filter1d(perfil_primario, sigma=sigma_samp, mode='nearest')
             rug_16610 = perfil_primario - waviness
             x_16610 = eje_x_primario
         else:
-            sigma_samp = compute_sigma_samples(eje_x_rug, args.cutoff_mm)
+            sigma_samp = compute_sigma_samples(eje_x_rug, cutoff_mm)
             waviness = gaussian_filter1d(perfil_rugosidad, sigma=sigma_samp, mode='nearest')
             rug_16610 = perfil_rugosidad - waviness
             x_16610 = eje_x_rug
@@ -428,8 +435,8 @@ if __name__ == "__main__":
             'Rvk (ISO 13565-2, 16610)': f'{Rvk_f:.3f} µm',
             'Mr1 (ISO 13565-2, 16610) (%)': f'{Mr1_f:.2f}',
             'Mr2 (ISO 13565-2, 16610) (%)': f'{Mr2_f:.2f}',
-            'λc (mm)': f'{args.cutoff_mm:.3f}',
-            'Fuente filtrado': args.filter_source,
+            'λc (mm)': f'{cutoff_mm:.3f}',
+            'Fuente filtrado': filter_source,
         }
 
         # Append al CSV principal
@@ -446,8 +453,48 @@ if __name__ == "__main__":
 
         # Gráfica y CSV del perfil 16610
         plt.figure(figsize=(12, 6)); plt.plot(x_16610, rug_16610, color='purple', lw=1)
-        plt.title(f'Perfil de Rugosidad (ISO 16610, λc={args.cutoff_mm} mm)')
+        plt.title(f'Perfil de Rugosidad (ISO 16610, λc={cutoff_mm} mm)')
         plt.xlabel('Distancia (mm)'); plt.ylabel('Altura (µm)')
         plt.grid(True); plt.savefig(os.path.join(base_dir, 'perfil_rugosidad_16610.png'))
         print(f"Gráfica '{os.path.join(base_dir, 'perfil_rugosidad_16610.png')}' guardada correctamente.")
         exportar_perfil_csv(x_16610, rug_16610, os.path.join(base_dir, 'perfil_rugosidad_16610.csv'))
+
+    return {
+        'base_dir': base_dir,
+        'csv_path': csv_path,
+        'Rk': rk_core,
+        'Rpk': rpk_peaks,
+        'Rvk': rvk_valleys,
+        'Mr1': mr1_ratio,
+        'Mr2': mr2_ratio,
+        'Ra': Ra,
+        'Rq': Rq,
+        'Rp': Rp,
+        'Rv': Rv,
+        'Rz_Rt': Rz_Rt,
+        'Rz_ISO': Rz_ISO,
+        'RSm': RSm,
+        'params': params or {},
+    }
+
+
+# =============================================================================
+# --- EJECUCIÓN DEL ANÁLISIS ---
+# =============================================================================
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description='Análisis de rugosidad (ISO 4287:1997 e ISO 13565-2) con opción de filtrado ISO 16610.')
+    parser.add_argument('folder', nargs='?', default=None, help='Carpeta con archivos *.tx1, *.tx2, *.tx3 (por defecto data/GrupoI/EspeI).')
+    parser.add_argument('--apply-filter', action='store_true', help='Aplicar filtrado ISO 16610 a partir del perfil primario para obtener rugosidad.')
+    parser.add_argument('--cutoff-mm', type=float, default=0.8, help='Longitud de corte (λc) en mm para el filtro Gaussiano (p.ej., 0.8, 2.5).')
+    parser.add_argument('--filter-source', choices=['primary', 'roughness'], default='primary', help='Fuente para el filtrado (primary recomendado).')
+    args = parser.parse_args()
+
+    default_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data', 'GrupoI', 'EspeI'))
+    target_dir = os.path.abspath(args.folder) if args.folder else default_dir
+
+    try:
+        procesar_carpeta(target_dir, apply_filter=args.apply_filter, cutoff_mm=args.cutoff_mm, filter_source=args.filter_source)
+    except (FileNotFoundError, ValueError, OSError) as exc:
+        print(f"Error durante el análisis: {exc}")
+        sys.exit(1)

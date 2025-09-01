@@ -43,6 +43,35 @@ O pasar otra carpeta con archivos `*.tx1`, `*.tx2`, `*.tx3`:
 python .\src\Single.py "c:\\ruta\\a\\carpeta"
 ```
 
+### Filtrado ISO 16610 (opcional)
+
+Puede activar el filtrado gaussiano (ISO 16610) para obtener el perfil de rugosidad desde el primario y recalcular los parámetros (también genera `curva_portancia_Rk_16610.png` y `perfil_rugosidad_16610.*`).
+
+```powershell
+python .\src\Single.py "c:\\ruta\\a\\carpeta" --apply-filter --cutoff-mm 0.8 --filter-source primary
+```
+
+Parámetros:
+- `--apply-filter`: activa el filtrado.
+- `--cutoff-mm`: longitud de corte λc en mm (p. ej., 0.8, 2.5).
+- `--filter-source`: `primary` (recomendado) o `roughness`.
+
+### Procesamiento en lote
+
+Para procesar todos los especímenes bajo `data/` (o una raíz que indique):
+
+```powershell
+python .\src\Batch.py            # usa .\data como raíz por defecto
+python .\src\Batch.py "c:\\ruta\\a\\root" --apply-filter --cutoff-mm 0.8 --filter-source primary --summary batch_summary.json
+```
+
+El proceso en lote:
+- Detecta carpetas que contienen `*.tx1`, `*.tx2`, `*.tx3`.
+- Ejecuta `procesar_carpeta` (de `src/Single.py`) en cada una.
+- Deja los CSV/figuras en cada carpeta de espécimen.
+- Genera un resumen `batch_summary.json` con métricas clave por carpeta y los fallos (si los hay).
+- Además exporta `batch_summary.csv` (UTF-8 con BOM) para abrirlo en Excel fácilmente.
+
 ## Entradas y salidas
 
 - Entradas: archivos tipo Surfcom en la carpeta objetivo
@@ -55,6 +84,10 @@ python .\src\Single.py "c:\\ruta\\a\\carpeta"
 	- perfil_primario.png, perfil_rugosidad.png
 	- curva_portancia_Rk.png
 	- perfil_primario_corr.png/.csv, perfil_rugosidad_corr.png/.csv (con corrección de pendiente)
+	- (si se activa) curva_portancia_Rk_16610.png, perfil_rugosidad_16610.png/.csv
+
+- Salidas del modo lote (en la raíz):
+	- batch_summary.json: lista de especímenes con `folder`, `csv`, `Ra`, `Rq`, `Rz_ISO`, `RSm`, `Rpk`, `Rk`, `Rvk`, `Mr1`, `Mr2` y lista de `failures`.
 
 ## Metodología y normas empleadas
 
@@ -95,4 +128,6 @@ Esta herramienta implementa parámetros de rugosidad según:
 5. Mr1, Mr2: se reportan como r1 y r2 en %.
 
 Notas:
-- Los cálculos se realizan sobre el perfil de rugosidad (.tx2). Para otras condiciones (filtros de ondulación conforme a ISO 16610), podrían añadirse etapas de filtrado previas.
+- Los cálculos se realizan sobre el perfil de rugosidad (.tx2). Con `--apply-filter` se obtiene rugosidad a partir del primario conforme a ISO 16610.
+- Codificaciones: entradas en `latin-1` para `.tx*`; salidas CSV con BOM (`utf-8-sig`) para compatibilidad con Excel.
+- `src/Single.py` expone la función `procesar_carpeta(path, ...)` para uso programático.
