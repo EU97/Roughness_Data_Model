@@ -7,6 +7,9 @@ Calcula parámetros ISO 4287:1997 (incl. Rz ISO), familia Rk, exporta CSV y guar
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
+from scipy.ndimage import gaussian_filter1d
+from scipy.integrate import trapezoid
+import csv
 import re
 import os
 import sys
@@ -28,13 +31,13 @@ def parse_config_file(filepath):
         return None
         
     config_params = {}
-    with open(filepath, 'r', encoding='latin-1') as f:
-        for line in f:
+    with open(filepath, 'r', encoding='latin-1') as cfg_file:
+        for line in cfg_file:
             parts = re.split(r'\t+', line.strip())
             if len(parts) >= 2:
-                key = parts[0].strip()
-                value = parts[1].strip()
-                config_params[key] = value
+                cfg_key = parts[0].strip()
+                cfg_value = parts[1].strip()
+                config_params[cfg_key] = cfg_value
     return config_params
 
 def calcular_rz_iso(perfil: np.ndarray, segmentos: int = 5) -> float:
@@ -59,13 +62,12 @@ def calcular_rz_iso(perfil: np.ndarray, segmentos: int = 5) -> float:
 
 def exportar_resultados_csv(resultados_dict: dict, filepath: str) -> None:
     """Exporta los resultados de rugosidad a un archivo CSV en filepath."""
-    import csv
     # utf-8-sig agrega BOM para que Excel muestre acentos correctamente
-    with open(filepath, 'w', newline='', encoding='utf-8-sig') as f:
-        writer = csv.writer(f)
-        writer.writerow(['Parámetro', 'Valor'])
-        for k, v in resultados_dict.items():
-            writer.writerow([k, v])
+    with open(filepath, 'w', newline='', encoding='utf-8-sig') as out_fh:
+        out_writer = csv.writer(out_fh)
+        out_writer.writerow(['Parámetro', 'Valor'])
+        for pname, pvalue in resultados_dict.items():
+            out_writer.writerow([pname, pvalue])
 
 def leer_perfil_con_header(filepath):
     """Lee un perfil Surfcom con cabecera: retorna (longitud_mm, n_puntos, perfil ndarray)."""
@@ -73,12 +75,12 @@ def leer_perfil_con_header(filepath):
         print(f"Error: El archivo de datos '{filepath}' no fue encontrado.")
         return None
     try:
-        with open(filepath, 'r', encoding='latin-1') as f:
+        with open(filepath, 'r', encoding='latin-1') as fh_in:
             # Línea 1: longitud (mm), línea 2: número de puntos
-            longitud_mm = float(next(f).strip())
-            n_puntos = int(next(f).strip())
+            longitud_mm = float(next(fh_in).strip())
+            n_puntos = int(next(fh_in).strip())
             datos = []
-            for line in f:
+            for line in fh_in:
                 line = line.strip()
                 if not line:
                     continue
@@ -101,12 +103,12 @@ def leer_perfil_txt(filepath):
         return None
 
     try:
-        with open(filepath, 'r', encoding='utf-8') as f:
+        with open(filepath, 'r', encoding='utf-8') as fh_in:
             # Omitir las 2 líneas de cabecera
-            next(f)
-            next(f)
+            next(fh_in)
+            next(fh_in)
             data = []
-            for line in f:
+            for line in fh_in:
                 line = line.strip()
                 if not line:
                     continue
@@ -131,71 +133,99 @@ def calcular_rsm(perfil, eje_x):
 
 def calcular_parametros_rk(perfil, plot=False, filename='curva_portancia_Rk.png'):
     """
-    Estima Rk, Rpk, Rvk, Mr1 y Mr2 desde la curva Abbott–Firestone.
-    Nota: Heurístico; para resultados normalizados, implementar ISO 13565-2.
+    ISO 13565-2: cálculo de Rk, Rpk, Rvk, Mr1, Mr2 desde la curva Abbott–Firestone.
+
+    Método:
+      1) Construye la curva de razón de material (MRC) como altura vs r (%)
+      2) Ajuste lineal al tramo más lineal (ventana deslizante de 40 %)
+      3) Intersecciones r1 y r2 donde MRC = línea del núcleo
+      4) Áreas A1 (0..r1) y A2 (r2..100) para Rpk y Rvk
+         Rpk = A1 / r1 ; Rvk = A2 / (100 - r2)
+         Rk = altura_línea(r1) - altura_línea(r2)
     """
     if perfil is None or len(perfil) < 10:
         return 0.0, 0.0, 0.0, 0.0, 0.0
 
-    n_bins = min(2048, max(256, len(perfil) // 2))
-    hist, edges = np.histogram(perfil, bins=n_bins, density=True)
-    heights = (edges[:-1] + edges[1:]) / 2.0
-    step = float(heights[1] - heights[0]) if len(heights) > 1 else 1.0
+    # 1) MRC: ordenar alturas (desc) y asignar r en 0..100 %
+    z = np.sort(perfil)[::-1]
+    n = len(z)
+    r = np.linspace(0.0, 100.0, n)
 
-    # Material ratio curve (descending cumulative)
-    mrc = np.cumsum(hist[::-1]) * step
-    mrc_heights = heights[::-1]
-    total = mrc[-1] if mrc[-1] != 0 else 1.0
-    mrc_percent = (mrc / total) * 100.0
+    # 2) Buscar tramo más lineal con ventana ~40% del dominio
+    win_pct = 40.0
+    win_len = max(5, int(n * (win_pct / 100.0)))
+    _best_i, best_rmse = 0, np.inf
+    best_coef = (0.0, float(z.mean()))
+    for i in range(0, n - win_len):
+        rr = r[i:i + win_len]
+        zz = z[i:i + win_len]
+        a, b = np.polyfit(rr, zz, 1)  # z ≈ a*r + b
+        zz_hat = a * rr + b
+        rmse = float(np.sqrt(np.mean((zz - zz_hat) ** 2)))
+        if rmse < best_rmse:
+            best_rmse, _best_i, best_coef = rmse, i, (a, b)
 
-    window_size = max(10, int(0.4 * len(mrc_percent)))
-    if window_size >= len(mrc_percent):
-        window_size = max(2, len(mrc_percent) // 3)
+    a, b = best_coef
 
-    best_i = 0
-    best_slope = np.inf
-    for i in range(0, len(mrc_percent) - window_size):
-        dy = mrc_percent[i + window_size] - mrc_percent[i]
-        dx = mrc_heights[i + window_size] - mrc_heights[i]
-        if dx == 0:
-            continue
-        slope = abs(dy / dx)
-        if 0 < slope < best_slope:
-            best_slope = slope
-            best_i = i
+    # 3) Intersecciones r1 y r2 (MRC - línea = 0)
+    delta = z - (a * r + b)
+    # Buscar primeros y últimos cruces de signo
+    sign = np.sign(delta)
+    crossings = np.where(np.diff(sign))[0]
+    if crossings.size >= 2:
+        i1 = crossings[0]
+        i2 = crossings[-1]
+        # Interpolación lineal para r1, r2
+        def interp_r(i):
+            r0, r1_ = r[i], r[i + 1]
+            d0, d1 = delta[i], delta[i + 1]
+            t = 0.0 if (d1 - d0) == 0 else (-d0) / (d1 - d0)
+            return r0 + t * (r1_ - r0)
+        r1, r2 = float(interp_r(i1)), float(interp_r(i2))
+    elif crossings.size == 1:
+        i1 = crossings[0]
+        r1 = float(r[i1])
+        r2 = 100.0
+    else:
+        r1, r2 = 0.0, 100.0
 
-    i0, j0 = best_i, best_i + window_size
-    m_line = (mrc_percent[j0] - mrc_percent[i0]) / (mrc_heights[j0] - mrc_heights[i0])
-    c_line = mrc_percent[i0] - m_line * mrc_heights[i0]
+    # 4) Áreas A1 y A2 por trapecios
+    # Construir funciones discretas en rejilla uniforme r
+    z_line = a * r + b
+    # A1: entre 0..r1 de (z - z_line) positivo
+    mask1 = r <= r1
+    A1 = float(trapezoid(np.maximum(z[mask1] - z_line[mask1], 0.0), r[mask1])) if np.any(mask1) else 0.0
+    # A2: entre r2..100 de (z_line - z) positivo
+    mask2 = r >= r2
+    A2 = float(trapezoid(np.maximum(z_line[mask2] - z[mask2], 0.0), r[mask2])) if np.any(mask2) else 0.0
 
-    h_mr1 = (0.0 - c_line) / m_line
-    h_mr2 = (100.0 - c_line) / m_line
-
-    rk_core_v = abs(h_mr1 - h_mr2)
-    rpk_peaks_v = float(np.max(perfil) - h_mr1)
-    rvk_valleys_v = float(h_mr2 - np.min(perfil))
-    mr1_ratio_v = float(np.interp(h_mr1, mrc_heights[::-1], mrc_percent[::-1]))
-    mr2_ratio_v = float(np.interp(h_mr2, mrc_heights[::-1], mrc_percent[::-1]))
+    Mr1 = float(r1)
+    Mr2 = float(r2)
+    Rpk = float(A1 / r1) if r1 > 0 else 0.0
+    Rvk = float(A2 / (100.0 - r2)) if r2 < 100.0 else 0.0
+    Rk = float(abs((a * r1 + b) - (a * r2 + b)))
 
     if plot:
         plt.figure(figsize=(10, 7))
-        plt.plot(mrc_percent, mrc_heights, color='black', label='Curva de Portancia')
-        plt.plot([mr1_ratio_v, mr2_ratio_v], [h_mr1, h_mr2], 'r--', label='Línea del Núcleo')
-        plt.hlines(y=h_mr1, xmin=0, xmax=mr1_ratio_v, color='b', ls=':')
-        plt.text(mr1_ratio_v / 2.0, h_mr1 + 1.0, f'Rpk = {rpk_peaks_v:.2f} µm', c='b', ha='center')
-        plt.vlines(x=mr1_ratio_v, ymin=h_mr2, ymax=h_mr1, color='r', ls='-')
-        plt.text(mr1_ratio_v + 5.0, (h_mr1 + h_mr2) / 2.0, f'Rk = {rk_core_v:.2f} µm', c='r')
-        plt.hlines(y=h_mr2, xmin=mr2_ratio_v, xmax=100, color='g', ls=':')
-        plt.text((100 + mr2_ratio_v) / 2.0, h_mr2 - 1.0, f'Rvk = {rvk_valleys_v:.2f} µm', c='g', ha='center')
-        plt.title('Curva de Material Portante (Abbott-Firestone) y Análisis Rk')
-        plt.xlabel('Ratio de Material Portante (%)')
+        plt.plot(r, z, color='black', label='Curva de Portancia (MRC)')
+        plt.plot(r, z_line, 'r--', label='Línea del Núcleo (ISO 13565-2)')
+        # Marcas r1, r2
+        z1, z2 = a * r1 + b, a * r2 + b
+        plt.scatter([r1, r2], [z1, z2], c=['b', 'g'], zorder=3)
+        plt.vlines([r1, r2], [min(z.min(), z_line.min())]*2, [z1, z2], colors=['b', 'g'], linestyles=':')
+        # Anotaciones
+        plt.text(r1 / 2.0, z1 + 0.05 * abs(z1), f'Rpk = {Rpk:.2f} µm', color='b', ha='center')
+        plt.text(r1 + (r2 - r1) / 2.0, (z1 + z2) / 2.0, f'Rk = {Rk:.2f} µm', color='r', ha='center')
+        plt.text((100 + r2) / 2.0, z2 - 0.05 * abs(z2), f'Rvk = {Rvk:.2f} µm', color='g', ha='center')
+        plt.title('Curva de Material Portante y parámetros ISO 13565-2')
+        plt.xlabel('Material portante (%)')
         plt.ylabel('Altura del Perfil (µm)')
         plt.grid(True)
         plt.legend()
         plt.savefig(filename)
         print(f"Gráfica '{filename}' guardada correctamente.")
 
-    return rk_core_v, rpk_peaks_v, rvk_valleys_v, mr1_ratio_v, mr2_ratio_v
+    return Rk, Rpk, Rvk, Mr1, Mr2
 
 
 def corregir_pendiente(perfil: np.ndarray, eje_x: np.ndarray):
@@ -213,22 +243,28 @@ def corregir_pendiente(perfil: np.ndarray, eje_x: np.ndarray):
 
 def exportar_perfil_csv(eje_x: np.ndarray, perfil: np.ndarray, filepath: str):
     """Exporta un perfil (x, y) a CSV con BOM para Excel."""
-    import csv
-    with open(filepath, 'w', newline='', encoding='utf-8-sig') as f:
-        w = csv.writer(f)
-        w.writerow(['x (mm)', 'altura (µm)'])
+    with open(filepath, 'w', newline='', encoding='utf-8-sig') as out_fh:
+        out_writer = csv.writer(out_fh)
+        out_writer.writerow(['x (mm)', 'altura (µm)'])
         for x, y in zip(eje_x, perfil):
-            w.writerow([f"{x:.9f}", f"{y:.9f}"])
+            out_writer.writerow([f"{x:.9f}", f"{y:.9f}"])
 
 
 # =============================================================================
 # --- EJECUCIÓN DEL ANÁLISIS ---
 # =============================================================================
 if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description='Análisis de rugosidad (ISO 4287:1997 e ISO 13565-2) con opción de filtrado ISO 16610.')
+    parser.add_argument('folder', nargs='?', default=None, help='Carpeta con 3.tx1, 3.tx2, 3.tx3 (por defecto data/GrupoI/EspeI).')
+    parser.add_argument('--apply-filter', action='store_true', help='Aplicar filtrado ISO 16610 a partir del perfil primario para obtener rugosidad.')
+    parser.add_argument('--cutoff-mm', type=float, default=0.8, help='Longitud de corte (λc) en mm para el filtro Gaussiano (p.ej., 0.8, 2.5).')
+    parser.add_argument('--filter-source', choices=['primary', 'roughness'], default='primary', help='Fuente para el filtrado (primary recomendado).')
+    args = parser.parse_args()
 
     # Carpeta a procesar: se puede pasar por argumento; por defecto: data/GrupoI/EspeI
     default_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data', 'GrupoI', 'EspeI'))
-    base_dir = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else default_dir
+    base_dir = os.path.abspath(args.folder) if args.folder else default_dir
 
     if not os.path.isdir(base_dir):
         print(f"Error: La carpeta '{base_dir}' no existe.")
@@ -255,7 +291,7 @@ if __name__ == "__main__":
     eje_x_primario = np.linspace(0, float(long_mm_primario), len(perfil_primario))
     eje_x_rug = np.linspace(0, float(long_mm_rug), len(perfil_rugosidad))
 
-    # --- Cálculos ---
+    # --- Cálculos (perfil de rugosidad original) ---
     Ra = float(np.mean(np.abs(perfil_rugosidad)))
     Rq = float(np.sqrt(np.mean(perfil_rugosidad**2)))
     Rp = float(np.max(perfil_rugosidad))
@@ -342,3 +378,76 @@ if __name__ == "__main__":
     exportar_perfil_csv(eje_x_rug, rug_corr, os.path.join(base_dir, 'perfil_rugosidad_corr.csv'))
 
     print("\nAnálisis finalizado.")
+
+    # --- Filtrado ISO 16610 opcional ---
+    if args.apply_filter:
+        # Relación sigma-samples para -3 dB en λc: sigma = 0.1325 * λc; sigma_samples = sigma / dx
+        def compute_sigma_samples(x_mm, lambda_c_mm):
+            dx = float(x_mm[1] - x_mm[0]) if len(x_mm) > 1 else lambda_c_mm
+            sigma_mm = 0.1325 * float(lambda_c_mm)
+            return max(0.5, sigma_mm / dx)
+
+        if args.filter_source == 'primary':
+            sigma_samp = compute_sigma_samples(eje_x_primario, args.cutoff_mm)
+            waviness = gaussian_filter1d(perfil_primario, sigma=sigma_samp, mode='nearest')
+            rug_16610 = perfil_primario - waviness
+            x_16610 = eje_x_primario
+        else:
+            sigma_samp = compute_sigma_samples(eje_x_rug, args.cutoff_mm)
+            waviness = gaussian_filter1d(perfil_rugosidad, sigma=sigma_samp, mode='nearest')
+            rug_16610 = perfil_rugosidad - waviness
+            x_16610 = eje_x_rug
+
+        # Parámetros sobre rug_16610
+        Ra_f = float(np.mean(np.abs(rug_16610)))
+        Rq_f = float(np.sqrt(np.mean(rug_16610**2)))
+        Rp_f = float(np.max(rug_16610))
+        Rv_f = float(np.min(rug_16610))
+        Rz_Rt_f = float(Rp_f - Rv_f)
+        Rsk_f = float(stats.skew(rug_16610))
+        Rku_f = float(stats.kurtosis(rug_16610, fisher=False))
+        RSm_f = float(calcular_rsm(rug_16610, x_16610))
+        Rk_f, Rpk_f, Rvk_f, Mr1_f, Mr2_f = calcular_parametros_rk(
+            rug_16610, plot=True, filename=os.path.join(base_dir, 'curva_portancia_Rk_16610.png')
+        )
+        Rz_ISO_f = float(calcular_rz_iso(rug_16610))
+
+        # CSV extendido con sufijo ISO 16610
+        resultados_16610 = {
+            'Ra (ISO 16610)': f'{Ra_f:.3f} µm',
+            'Rq (ISO 16610)': f'{Rq_f:.3f} µm',
+            'Rp (ISO 16610)': f'{Rp_f:.3f} µm',
+            'Rv (ISO 16610)': f'{Rv_f:.3f} µm',
+            'Rz/Rt (ISO 16610)': f'{Rz_Rt_f:.3f} µm',
+            'Rz (ISO 4287:1997, perfil 16610)': f'{Rz_ISO_f:.3f} µm',
+            'Rsk (ISO 16610)': f'{Rsk_f:.3f}',
+            'Rku (ISO 16610)': f'{Rku_f:.3f}',
+            'RSm (ISO 16610)': f'{RSm_f:.3f} µm',
+            'Rpk (ISO 13565-2, 16610)': f'{Rpk_f:.3f} µm',
+            'Rk (ISO 13565-2, 16610)': f'{Rk_f:.3f} µm',
+            'Rvk (ISO 13565-2, 16610)': f'{Rvk_f:.3f} µm',
+            'Mr1 (ISO 13565-2, 16610) (%)': f'{Mr1_f:.2f}',
+            'Mr2 (ISO 13565-2, 16610) (%)': f'{Mr2_f:.2f}',
+            'λc (mm)': f'{args.cutoff_mm:.3f}',
+            'Fuente filtrado': args.filter_source,
+        }
+
+        # Append al CSV principal
+        try:
+            with open(csv_path, 'a', newline='', encoding='utf-8-sig') as append_fh:
+                append_writer = csv.writer(append_fh)
+                append_writer.writerow([])
+                append_writer.writerow(['Parámetro (ISO 16610/13565-2)', 'Valor'])
+                for pname, pvalue in resultados_16610.items():
+                    append_writer.writerow([pname, pvalue])
+            print(f"Resultados ISO 16610 añadidos a '{csv_path}'.")
+        except (OSError, csv.Error) as e:
+            print(f"No se pudieron anexar resultados ISO 16610: {e}")
+
+        # Gráfica y CSV del perfil 16610
+        plt.figure(figsize=(12, 6)); plt.plot(x_16610, rug_16610, color='purple', lw=1)
+        plt.title(f'Perfil de Rugosidad (ISO 16610, λc={args.cutoff_mm} mm)')
+        plt.xlabel('Distancia (mm)'); plt.ylabel('Altura (µm)')
+        plt.grid(True); plt.savefig(os.path.join(base_dir, 'perfil_rugosidad_16610.png'))
+        print(f"Gráfica '{os.path.join(base_dir, 'perfil_rugosidad_16610.png')}' guardada correctamente.")
+        exportar_perfil_csv(x_16610, rug_16610, os.path.join(base_dir, 'perfil_rugosidad_16610.csv'))
