@@ -23,7 +23,10 @@ python ./src/Compare.py ./data --output-dir reports --metrics Ra Rq Rz_ISO RSm R
 ```
 
 Notes:
-- Inputs come from Surfcom-like .tx1/.tx2/.tx3 files in each specimen folder.
+- Inputs come from `.tx1/.tx2/.tx3` files in each specimen folder. Two formats are auto-detected:
+  - **Surfcom (with header):** line 1 = length (mm), line 2 = point count, remaining = heights (µm).
+  - **Two-column (no header):** each line = `X,Z` comma-separated (X in mm, Z in µm).
+- No extra flags needed — format detection is automatic.
 - CSVs are written with UTF-8 BOM for Excel compatibility.
 
 ## Quality gates
@@ -48,7 +51,12 @@ Notes:
 - Optional ISO 16610 Gaussian filtering, metrics and plots appended: Done.
 - Batch processing (`Batch.py`) with JSON and CSV summaries: Done.
 - Comparative analysis (`Compare.py`) per-group stats, rankings, and cross-group visuals and report: Done.
+- **Two-column .tx format support** (auto-detection + dedicated reader): Done.
 - Documentation: README includes methodology and usage; this REPORT complements with how-to-run and gate coverage.
+
+## Bugfixes
+
+- Fixed ISO 16610 plot/CSV export code that ran outside the `if apply_filter:` block, causing `UnboundLocalError` on `x_16610` when filter was not enabled.
 
 ## Extras and next steps
 

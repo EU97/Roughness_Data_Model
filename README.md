@@ -205,10 +205,38 @@ Notas:
 
 ## Entradas y salidas
 
-- Entradas: archivos tipo Surfcom en la carpeta objetivo
-	- 3.tx1: perfil primario (línea 1 longitud mm, línea 2 puntos, resto alturas µm)
-	- 3.tx2: perfil de rugosidad (formato igual)
-	- 3.tx3: configuración (tabulado, latin-1)
+### Formatos de entrada soportados
+
+El sistema detecta automáticamente el formato de los archivos `.tx1`/`.tx2` al leer la primera línea:
+
+**Formato 1 — Surfcom con cabecera** (formato original):
+- `3.tx1`: perfil primario (línea 1: longitud mm, línea 2: número de puntos, resto: alturas µm)
+- `3.tx2`: perfil de rugosidad (mismo formato)
+- `3.tx3`: configuración (tabulado, latin-1)
+
+Ejemplo `.tx1`:
+```
+10.00000
+28087
+10.6720
+10.6640
+...
+```
+
+**Formato 2 — Dos columnas (X,Z)** (formato nuevo, sin cabecera):
+- `.tx1`: perfil primario — cada línea contiene `X,Z` separados por coma (X en mm, Z en µm)
+- `.tx2`: perfil de rugosidad (mismo formato)
+- `.tx3`: configuración (tabulado, latin-1 — idéntico al formato original)
+
+Ejemplo `.tx1`:
+```
+0.0000000,-24.0120
+0.0002035,-24.0200
+0.0004069,-24.0360
+...
+```
+
+> **Nota:** No se necesita ningún flag extra. `Single.py`, `Batch.py` y `Dashboard.py` detectan el formato automáticamente y aplican el lector correspondiente. Ambos formatos producen las mismas salidas (CSV, PNG, métricas).
 
 - Salidas (en la misma carpeta):
 	- resultados_rugosidad.csv (UTF-8 con BOM)
@@ -230,11 +258,20 @@ Esta herramienta implementa parámetros de rugosidad según:
 
 ### Lectura de datos
 
-- Archivos .tx1 (perfil primario) y .tx2 (perfil de rugosidad) con cabecera:
-  - Línea 1: longitud de medición (mm)
-  - Línea 2: número de puntos
-  - Líneas siguientes: alturas (µm)
-- Archivo .tx3: metadatos/tabulado (latin-1). Opcional para longitud; si falta, se usa la cabecera de .tx1/.tx2.
+Se soportan dos formatos de entrada para `.tx1`/`.tx2`. La detección es automática (basada en si la primera línea contiene una coma):
+
+**Formato Surfcom (con cabecera):**
+- Línea 1: longitud de medición (mm)
+- Línea 2: número de puntos
+- Líneas siguientes: alturas (µm), una por línea
+- El eje X se construye con `np.linspace(0, longitud, n_puntos)`
+
+**Formato dos columnas (sin cabecera):**
+- Cada línea: `X,Z` (X en mm, Z en µm), separados por coma
+- El eje X se toma directamente de la primera columna (mayor precisión espacial)
+- La longitud de medición se deriva de los datos: `x[-1] - x[0]`
+
+Archivo `.tx3`: metadatos/tabulado (latin-1). Idéntico en ambos formatos.
 
 ### Cálculo de parámetros (ISO 4287:1997)
 
