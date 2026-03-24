@@ -15,13 +15,41 @@ python .\src\Single.py .\data\GrupoI\EspeI --apply-filter --cutoff-mm 0.8 --filt
 # 3) Lote completo (data/)
 python .\src\Batch.py .\data --apply-filter --cutoff-mm 0.8 --filter-source primary
 
-# 4) Comparativas + PDFs
+# 4) Organizar archivos .tx sueltos en estructura Grupo/Espe
+python .\src\Organize.py raw_data/ data/ --dry-run
+
+# 5) Comparativas + PDFs
 python .\src\Compare.py .\data --output-dir reports \
-	--metrics Ra Rq Rz_ISO RSm Rpk Rk Rvk Mr1 Mr2 --rank-metric Ra \
+	--metrics Ra Rq Rz_ISO Rt RSm Rdq Rda Pc Rpk Rk Rvk Mr1 Mr2 --rank-metric Ra \
 	--make-pdf --make-pdf-filtered --pdf-top-k 2
+
+# 6) Dashboard interactivo (Streamlit)
+streamlit run src/Dashboard.py
 ```
 
 Salidas clave: CSV/PNG por espécimen en cada carpeta; `batch_summary.json/.csv` en `data/`; reportes y gráficos en `data/reports/` y PDFs opcionales.
+
+## Referencia de Parámetros
+
+| Parámetro | Norma | Descripción | Unidad |
+|-----------|-------|-------------|--------|
+| Ra | ISO 4287 §4.2.1 | Promedio aritmético de las alturas absolutas del perfil | µm |
+| Rq | ISO 4287 §4.2.2 | Raíz del promedio cuadrático (RMS) de las alturas | µm |
+| Rp | ISO 4287 §4.2.4 | Altura máxima de pico | µm |
+| Rv | ISO 4287 §4.2.5 | Profundidad máxima de valle | µm |
+| Rt | ISO 4287 §4.2.6 | Altura total del perfil (Rp − Rv) | µm |
+| Rz | ISO 4287 §4.1.3 | Media de las amplitudes pico–valle máximas de 5 segmentos | µm |
+| Rsk | ISO 4287 §4.3.1 | Asimetría (skewness) de la distribución de alturas | — |
+| Rku | ISO 4287 §4.3.2 | Curtosis (kurtosis) de la distribución de alturas | — |
+| RSm | ISO 4287 §4.3.3 | Anchura media de los elementos del perfil (cruces de cero) | µm |
+| Rdq | ISO 4287 §4.4.2 | Pendiente RMS del perfil | µm/mm |
+| Rda | ISO 4287 §4.4.1 | Pendiente media absoluta del perfil | µm/mm |
+| Pc | ISO 4287 | Conteo de picos por milímetro sobre la línea media | 1/mm |
+| Rk | ISO 13565-2 | Profundidad del núcleo funcional (curva de Abbott) | µm |
+| Rpk | ISO 13565-2 | Altura reducida de picos (zona de desgaste inicial) | µm |
+| Rvk | ISO 13565-2 | Profundidad reducida de valles (retención de lubricante) | µm |
+| Mr1 | ISO 13565-2 | Porcentaje de material en el límite superior del núcleo | % |
+| Mr2 | ISO 13565-2 | Porcentaje de material en el límite inferior del núcleo | % |
 
 ## Requisitos
 
@@ -98,7 +126,7 @@ El proceso en lote:
 A partir del resumen del lote (`batch_summary.json`), se generan comparativas por grupo y entre grupos, rankings y gráficas.
 
 ```powershell
-python .\src\Compare.py .\data --output-dir reports --metrics Ra Rq Rz_ISO RSm Rpk Rk Rvk Mr1 Mr2 --rank-metric Ra
+python .\src\Compare.py .\data --output-dir reports --metrics Ra Rq Rz_ISO Rt RSm Rdq Rda Pc Rpk Rk Rvk Mr1 Mr2 --rank-metric Ra
 ```
 
 Genera en `data/reports`:
@@ -114,6 +142,48 @@ Parámetros clave:
 - `--rank-metric`: métrica para ordenar los rankings/figuras de ranking.
 - `--output-dir`: carpeta destino de reportes (por defecto `reports`).
 - `--compute-if-missing`: si no existe `batch_summary.json`, puede calcularlo en caliente (usa `Single.procesar_carpeta`).
+
+### Organizar archivos (Organize.py)
+
+Organiza archivos `.tx1/.tx2/.tx3` sueltos (o en subcarpetas) en la estructura estándar `Grupo/Espe` que esperan los demás scripts.
+
+```powershell
+# Vista previa (no modifica nada)
+python .\src\Organize.py raw_data/ data/ --dry-run
+
+# Copiar (por defecto) con 5 especímenes por grupo
+python .\src\Organize.py raw_data/ data/
+
+# Mover en vez de copiar
+python .\src\Organize.py raw_data/ data/ --move
+
+# 3 especímenes por grupo
+python .\src\Organize.py raw_data/ data/ --specimens-per-group 3
+
+# Todo en un solo grupo
+python .\src\Organize.py raw_data/ data/ --single-group
+```
+
+Parámetros:
+- `source`: directorio origen con archivos `.tx`.
+- `dest`: directorio destino (por defecto `data`).
+- `--move`: mover en vez de copiar.
+- `--dry-run`: mostrar acciones sin ejecutarlas.
+- `--specimens-per-group N`: especímenes por grupo (defecto: 5).
+- `--single-group`: agrupar todo en un solo grupo.
+- `--prefix`: prefijo de carpeta de grupo (defecto: `Grupo`).
+
+### Dashboard interactivo (Dashboard.py)
+
+Dashboard Streamlit con tres páginas:
+- **Single Specimen**: análisis interactivo con gráficos Plotly y slider de filtro λc.
+- **Batch Overview**: tabla ordenable y heatmap de parámetros normalizados.
+- **Group Comparison**: boxplots, barras media±std y tabla de estadísticas por grupo.
+
+```powershell
+pip install streamlit plotly
+streamlit run src/Dashboard.py
+```
 
 ### PDF opcional de reportes y PDF filtrado ISO 16610
 
@@ -148,14 +218,14 @@ Notas:
 	- (si se activa) curva_portancia_Rk_16610.png, perfil_rugosidad_16610.png/.csv
 
 - Salidas del modo lote (en la raíz):
-	- batch_summary.json: lista de especímenes con `folder`, `csv`, `Ra`, `Rq`, `Rz_ISO`, `RSm`, `Rpk`, `Rk`, `Rvk`, `Mr1`, `Mr2` y lista de `failures`.
+- `batch_summary.json`: lista de especímenes con `folder`, `csv`, `Ra`, `Rq`, `Rz_ISO`, `Rt`, `RSm`, `Rdq`, `Rda`, `Pc`, `Rpk`, `Rk`, `Rvk`, `Mr1`, `Mr2` y lista de `failures`.
 	- batch_summary.csv: igual resumen en CSV (UTF-8 con BOM) apto para Excel.
 
 ## Metodología y normas empleadas
 
 Esta herramienta implementa parámetros de rugosidad según:
 
-- ISO 4287:1997 (parámetros de amplitud y espaciamiento): Ra, Rq, Rp, Rv, Rz/Rt, Rsk, Rku y RSm.
+- ISO 4287:1997 (parámetros de amplitud, espaciamiento y pendiente): Ra, Rq, Rp, Rv, Rt, Rz, Rsk, Rku, RSm, Rdq, Rda y Pc.
 - ISO 13565-2 (superficies con picos y valles sobresalientes): Rk, Rpk, Rvk, Mr1, Mr2 mediante la curva de material portante (Abbott–Firestone).
 
 ### Lectura de datos
@@ -170,10 +240,13 @@ Esta herramienta implementa parámetros de rugosidad según:
 
 - Ra: promedio aritmético de |z|.
 - Rq: raíz del promedio de z².
-- Rp, Rv, Rz/Rt: pico máximo, valle máximo y altura total (Rp − Rv).
-- Rz (ISO 97): se divide el perfil de rugosidad en 5 segmentos iguales y se promedian las amplitudes pico–valle máximas por segmento.
+- Rp, Rv, Rt: pico máximo, valle máximo y altura total del perfil (Rp − Rv).
+- Rz (ISO 4287:1997): se divide el perfil de rugosidad en 5 segmentos iguales y se promedian las amplitudes pico–valle máximas por segmento.
 - Rsk (asimetría) y Rku (curtosis): sesgo y curtosis estadística sobre z.
-- RSm: anchura media de elementos por cruces de cero del perfil, convirtiendo de puntos a longitud usando el eje X (mm → µm).
+- RSm: anchura media de elementos por cruces de cero del perfil centrado (se resta la media para robustez), convirtiendo de puntos a longitud usando el eje X (mm → µm).
+- Rdq: pendiente RMS del perfil (raíz del promedio de las derivadas al cuadrado).
+- Rda: pendiente media absoluta del perfil (promedio de |dz/dx|).
+- Pc: conteo de picos por milímetro que superan la línea media del perfil.
 
 ### Parámetros funcionales (ISO 13565-2)
 
