@@ -16,8 +16,7 @@ CURRENT_DIR = os.path.dirname(__file__)
 if CURRENT_DIR not in sys.path:
     sys.path.insert(0, CURRENT_DIR)
 
-from Single import procesar_carpeta  # noqa: E402
-
+from Single import procesar_carpeta  
 
 def find_specimen_folders(root: str) -> List[str]:
     """Encuentra carpetas con archivos *.tx1/*.tx2/*.tx3 bajo root.

@@ -120,6 +120,54 @@ def leer_perfil_txt(filepath):
         print(f"Error: El archivo '{filepath}' contiene datos no numéricos.")
         return None
 
+
+def detectar_formato_tx(filepath):
+    """Detecta el formato de un archivo .tx1/.tx2.
+    Retorna 'two_column' si la primera línea contiene una coma (formato X,Z),
+    o 'surfcom_header' si es un solo valor numérico (cabecera Surfcom).
+    """
+    try:
+        with open(filepath, 'r', encoding='latin-1') as fh:
+            first_line = fh.readline().strip()
+        if not first_line:
+            return None
+        if ',' in first_line:
+            return 'two_column'
+        return 'surfcom_header'
+    except OSError:
+        return None
+
+
+def leer_perfil_dos_columnas(filepath):
+    """Lee un perfil en formato de dos columnas (X,Z) sin cabecera.
+    Retorna (longitud_mm, n_puntos, eje_x ndarray, perfil ndarray) o None.
+    """
+    if not os.path.exists(filepath):
+        print(f"Error: El archivo de datos '{filepath}' no fue encontrado.")
+        return None
+    try:
+        x_vals, z_vals = [], []
+        with open(filepath, 'r', encoding='latin-1') as fh_in:
+            for line in fh_in:
+                line = line.strip()
+                if not line:
+                    continue
+                parts = line.split(',')
+                if len(parts) != 2:
+                    continue
+                x_vals.append(float(parts[0]))
+                z_vals.append(float(parts[1]))
+        if not x_vals:
+            print(f"Error: No se encontraron datos en '{filepath}'.")
+            return None
+        eje_x = np.array(x_vals, dtype=float)
+        perfil = np.array(z_vals, dtype=float)
+        longitud_mm = float(eje_x[-1] - eje_x[0])
+        return longitud_mm, len(perfil), eje_x, perfil
+    except (ValueError, OSError) as e:
+        print(f"Error leyendo '{filepath}': {e}")
+        return None
+
 def calcular_rsm(perfil, eje_x):
     """Calcula RSm (Anchura Media de los Elementos del Perfil) en µm."""
     perfil_centrado = perfil - np.mean(perfil)
@@ -324,19 +372,27 @@ def procesar_carpeta(base_dir: str, apply_filter: bool = False, cutoff_mm: float
 
     params = parse_config_file(ruta_archivo_config)
 
-    # Leer perfiles con cabecera (longitud, puntos, datos)
-    header_primario = leer_perfil_con_header(ruta_archivo_primario)
-    header_rugosidad = leer_perfil_con_header(ruta_archivo_rugosidad)
+    # Detectar formato de archivos .tx
+    formato = detectar_formato_tx(ruta_archivo_primario)
 
-    if not header_primario or not header_rugosidad:
-        raise ValueError("No fue posible leer los perfiles primario y/o de rugosidad.")
-
-    long_mm_primario, _, perfil_primario = header_primario
-    long_mm_rug, _, perfil_rugosidad = header_rugosidad
-
-    # Construir ejes X independientes según longitudes declaradas
-    eje_x_primario = np.linspace(0, float(long_mm_primario), len(perfil_primario))
-    eje_x_rug = np.linspace(0, float(long_mm_rug), len(perfil_rugosidad))
+    if formato == 'two_column':
+        # Formato de dos columnas (X,Z) sin cabecera
+        data_primario = leer_perfil_dos_columnas(ruta_archivo_primario)
+        data_rugosidad = leer_perfil_dos_columnas(ruta_archivo_rugosidad)
+        if not data_primario or not data_rugosidad:
+            raise ValueError("No fue posible leer los perfiles primario y/o de rugosidad.")
+        long_mm_primario, _, eje_x_primario, perfil_primario = data_primario
+        long_mm_rug, _, eje_x_rug, perfil_rugosidad = data_rugosidad
+    else:
+        # Formato Surfcom con cabecera (longitud, puntos, datos)
+        header_primario = leer_perfil_con_header(ruta_archivo_primario)
+        header_rugosidad = leer_perfil_con_header(ruta_archivo_rugosidad)
+        if not header_primario or not header_rugosidad:
+            raise ValueError("No fue posible leer los perfiles primario y/o de rugosidad.")
+        long_mm_primario, _, perfil_primario = header_primario
+        long_mm_rug, _, perfil_rugosidad = header_rugosidad
+        eje_x_primario = np.linspace(0, float(long_mm_primario), len(perfil_primario))
+        eje_x_rug = np.linspace(0, float(long_mm_rug), len(perfil_rugosidad))
 
     # --- Cálculos (perfil de rugosidad original) ---
     Ra = float(np.mean(np.abs(perfil_rugosidad)))
@@ -510,14 +566,14 @@ def procesar_carpeta(base_dir: str, apply_filter: bool = False, cutoff_mm: float
         except (OSError, csv.Error) as e:
             print(f"No se pudieron anexar resultados ISO 16610: {e}")
 
-    # Gráfica y CSV del perfil 16610
-    plt.figure(figsize=(12, 6)); plt.plot(x_16610, rug_16610, color='purple', lw=1)
-    plt.title(f'Perfil de Rugosidad (ISO 16610, λc={cutoff_mm} mm)')
-    plt.xlabel('Distancia (mm)'); plt.ylabel('Altura (µm)')
-    plt.grid(True); plt.savefig(os.path.join(base_dir, 'perfil_rugosidad_16610.png'))
-    plt.close()
-    print(f"Gráfica '{os.path.join(base_dir, 'perfil_rugosidad_16610.png')}' guardada correctamente.")
-    exportar_perfil_csv(x_16610, rug_16610, os.path.join(base_dir, 'perfil_rugosidad_16610.csv'))
+        # Gráfica y CSV del perfil 16610
+        plt.figure(figsize=(12, 6)); plt.plot(x_16610, rug_16610, color='purple', lw=1)
+        plt.title(f'Perfil de Rugosidad (ISO 16610, λc={cutoff_mm} mm)')
+        plt.xlabel('Distancia (mm)'); plt.ylabel('Altura (µm)')
+        plt.grid(True); plt.savefig(os.path.join(base_dir, 'perfil_rugosidad_16610.png'))
+        plt.close()
+        print(f"Gráfica '{os.path.join(base_dir, 'perfil_rugosidad_16610.png')}' guardada correctamente.")
+        exportar_perfil_csv(x_16610, rug_16610, os.path.join(base_dir, 'perfil_rugosidad_16610.csv'))
 
     return {
         'base_dir': base_dir,

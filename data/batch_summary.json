@@ -1,0 +1,377 @@
+{
+  "summary": [],
+  "failures": [
+    {
+      "folder": "1_Optragloss_IvoclarI\\EspeI",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "1_Optragloss_IvoclarI\\EspeII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "1_Optragloss_IvoclarI\\EspeIII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "1_Optragloss_IvoclarI\\EspeIV",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "1_Optragloss_IvoclarI\\EspeIX",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "1_Optragloss_IvoclarI\\EspeV",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "1_Optragloss_IvoclarI\\EspeVI",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "1_Optragloss_IvoclarI\\EspeVII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "1_Optragloss_IvoclarI\\EspeVIII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "1_Optragloss_IvoclarI\\EspeX",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "1_Optragloss_IvoclarI\\EspeXI",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "1_Optragloss_IvoclarI\\EspeXII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "1_Optragloss_IvoclarI\\EspeXIII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "1_Optragloss_IvoclarI\\EspeXIV",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "1_Optragloss_IvoclarI\\EspeXIX",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "1_Optragloss_IvoclarI\\EspeXV",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "1_Optragloss_IvoclarI\\EspeXVI",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "1_Optragloss_IvoclarI\\EspeXVII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "1_Optragloss_IvoclarI\\EspeXVIII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "1_Optragloss_IvoclarI\\EspeXX",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "1_Optragloss_IvoclarI\\EspeXXI",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "1_Optragloss_IvoclarI\\EspeXXII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "1_Optragloss_IvoclarI\\EspeXXIII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "1_Optragloss_IvoclarI\\EspeXXIV",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "1_Optragloss_IvoclarI\\EspeXXIX",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "1_Optragloss_IvoclarI\\EspeXXV",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "1_Optragloss_IvoclarI\\EspeXXVI",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "1_Optragloss_IvoclarI\\EspeXXVII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "1_Optragloss_IvoclarI\\EspeXXVIII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "1_Optragloss_IvoclarI\\EspeXXX",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "2_LS_JOTAI\\EspeI",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "2_LS_JOTAI\\EspeII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "2_LS_JOTAI\\EspeIII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "2_LS_JOTAI\\EspeIV",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "2_LS_JOTAI\\EspeIX",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "2_LS_JOTAI\\EspeV",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "2_LS_JOTAI\\EspeVI",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "2_LS_JOTAI\\EspeVII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "2_LS_JOTAI\\EspeVIII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "2_LS_JOTAI\\EspeX",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "2_LS_JOTAI\\EspeXI",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "2_LS_JOTAI\\EspeXII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "2_LS_JOTAI\\EspeXIII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "2_LS_JOTAI\\EspeXIV",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "2_LS_JOTAI\\EspeXIX",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "2_LS_JOTAI\\EspeXV",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "2_LS_JOTAI\\EspeXVI",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "2_LS_JOTAI\\EspeXVII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "2_LS_JOTAI\\EspeXVIII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "2_LS_JOTAI\\EspeXX",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "2_LS_JOTAI\\EspeXXI",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "2_LS_JOTAI\\EspeXXII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "2_LS_JOTAI\\EspeXXIII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "2_LS_JOTAI\\EspeXXIV",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "2_LS_JOTAI\\EspeXXIX",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "2_LS_JOTAI\\EspeXXV",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "2_LS_JOTAI\\EspeXXVI",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "2_LS_JOTAI\\EspeXXVII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "2_LS_JOTAI\\EspeXXVIII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "2_LS_JOTAI\\EspeXXX",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "3_DiaswissI\\EspeI",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "3_DiaswissI\\EspeII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "3_DiaswissI\\EspeIII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "3_DiaswissI\\EspeIV",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "3_DiaswissI\\EspeIX",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "3_DiaswissI\\EspeV",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "3_DiaswissI\\EspeVI",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "3_DiaswissI\\EspeVII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "3_DiaswissI\\EspeVIII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "3_DiaswissI\\EspeX",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "3_DiaswissI\\EspeXI",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "3_DiaswissI\\EspeXII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "3_DiaswissI\\EspeXIII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "3_DiaswissI\\EspeXIV",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "3_DiaswissI\\EspeXIX",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "3_DiaswissI\\EspeXV",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "3_DiaswissI\\EspeXVI",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "3_DiaswissI\\EspeXVII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "3_DiaswissI\\EspeXVIII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "3_DiaswissI\\EspeXX",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "3_DiaswissI\\EspeXXI",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "3_DiaswissI\\EspeXXII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "3_DiaswissI\\EspeXXIII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "3_DiaswissI\\EspeXXIV",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "3_DiaswissI\\EspeXXIX",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "3_DiaswissI\\EspeXXV",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "3_DiaswissI\\EspeXXVI",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "3_DiaswissI\\EspeXXVII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "3_DiaswissI\\EspeXXVIII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "3_DiaswissI\\EspeXXX",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "Prueba_pilotoI\\EspeI",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "Prueba_pilotoI\\EspeII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    },
+    {
+      "folder": "Prueba_pilotoI\\EspeIII",
+      "error": "No fue posible leer los perfiles primario y/o de rugosidad."
+    }
+  ]
+}
