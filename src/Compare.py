@@ -306,7 +306,7 @@ def main():
     parser.add_argument('root', nargs='?', default=None, help='Carpeta raíz (por defecto ./data).')
     parser.add_argument('--summary', default='batch_summary.json', help='Ruta al batch_summary.json (relativa a root o absoluta).')
     parser.add_argument('--output-dir', default='reports', help='Carpeta de salida para reportes.')
-    parser.add_argument('--metrics', nargs='*', default=['Ra', 'Rq', 'Rz_ISO', 'RSm', 'Rpk', 'Rk', 'Rvk', 'Mr1', 'Mr2'], help='Métricas a considerar.')
+    parser.add_argument('--metrics', nargs='*', default=['Ra', 'Rq', 'Rz_ISO', 'Rt', 'RSm', 'Rdq', 'Rda', 'Pc', 'Rpk', 'Rk', 'Rvk', 'Mr1', 'Mr2'], help='Métricas a considerar.')
     parser.add_argument('--rank-metric', default='Ra', help='Métrica para ordenar rankings/plots (debe estar en --metrics).')
     parser.add_argument('--compute-if-missing', action='store_true', help='Calcular batch en caliente si no existe el summary.')
     parser.add_argument('--apply-filter', action='store_true', help='Si se calcula en caliente, aplicar filtrado ISO 16610.')
@@ -351,7 +351,11 @@ def main():
                     'Ra': result.get('Ra'),
                     'Rq': result.get('Rq'),
                     'Rz_ISO': result.get('Rz_ISO'),
+                    'Rt': result.get('Rt'),
                     'RSm': result.get('RSm'),
+                    'Rdq': result.get('Rdq'),
+                    'Rda': result.get('Rda'),
+                    'Pc': result.get('Pc'),
                     'Rpk': result.get('Rpk'),
                     'Rk': result.get('Rk'),
                     'Rvk': result.get('Rvk'),

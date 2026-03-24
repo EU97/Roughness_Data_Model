@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from scipy import stats
 from scipy.ndimage import gaussian_filter1d
 from scipy.integrate import trapezoid
+from scipy.signal import find_peaks
 import csv
 import re
 import os
@@ -121,7 +122,8 @@ def leer_perfil_txt(filepath):
 
 def calcular_rsm(perfil, eje_x):
     """Calcula RSm (Anchura Media de los Elementos del Perfil) en µm."""
-    zero_crossings = np.where(np.diff(np.sign(perfil)))[0]
+    perfil_centrado = perfil - np.mean(perfil)
+    zero_crossings = np.where(np.diff(np.sign(perfil_centrado)))[0]
     if len(zero_crossings) < 2: return 0.0
     
     element_lengths_pts = np.diff(zero_crossings)
@@ -131,6 +133,39 @@ def calcular_rsm(perfil, eje_x):
     pts_por_mm = len(perfil) / rango
     element_lengths_mm = element_lengths_pts / pts_por_mm
     return np.mean(element_lengths_mm) * 1000
+
+
+def calcular_rdq(perfil, eje_x):
+    """Calcula Rdq (Pendiente RMS del perfil, ISO 4287 §4.4.2) en µm/mm."""
+    if perfil is None or len(perfil) < 3:
+        return 0.0
+    dz_dx = np.gradient(perfil, eje_x)
+    return float(np.sqrt(np.mean(dz_dx ** 2)))
+
+
+def calcular_rda(perfil, eje_x):
+    """Calcula Rda (Pendiente media absoluta, ISO 4287 §4.4.1) en µm/mm."""
+    if perfil is None or len(perfil) < 3:
+        return 0.0
+    dz_dx = np.gradient(perfil, eje_x)
+    return float(np.mean(np.abs(dz_dx)))
+
+
+def calcular_pc(perfil, eje_x, threshold=None):
+    """Calcula Pc (conteo de picos por mm, ISO 4287).
+    threshold por defecto: línea media del perfil.
+    Retorna picos/mm.
+    """
+    if perfil is None or len(perfil) < 3:
+        return 0.0
+    if threshold is None:
+        threshold = np.mean(perfil)
+    peaks, _ = find_peaks(perfil, height=threshold)
+    rango_mm = float(eje_x[-1] - eje_x[0])
+    if rango_mm <= 0:
+        return 0.0
+    return float(len(peaks) / rango_mm)
+
 
 def calcular_parametros_rk(perfil, plot=False, filename='curva_portancia_Rk.png'):
     """
@@ -188,6 +223,10 @@ def calcular_parametros_rk(perfil, plot=False, filename='curva_portancia_Rk.png'
         r1 = float(r[i1])
         r2 = 100.0
     else:
+        r1, r2 = 0.0, 100.0
+
+    # Validar: r2 debe ser > r1
+    if r2 <= r1:
         r1, r2 = 0.0, 100.0
 
     # 4) Áreas A1 y A2 por trapecios
@@ -304,10 +343,13 @@ def procesar_carpeta(base_dir: str, apply_filter: bool = False, cutoff_mm: float
     Rq = float(np.sqrt(np.mean(perfil_rugosidad**2)))
     Rp = float(np.max(perfil_rugosidad))
     Rv = float(np.min(perfil_rugosidad))
-    Rz_Rt = float(Rp - Rv)
+    Rt = float(Rp - Rv)
     Rsk = float(stats.skew(perfil_rugosidad))
     Rku = float(stats.kurtosis(perfil_rugosidad, fisher=False))
     RSm = float(calcular_rsm(perfil_rugosidad, eje_x_rug))
+    Rdq = float(calcular_rdq(perfil_rugosidad, eje_x_rug))
+    Rda = float(calcular_rda(perfil_rugosidad, eje_x_rug))
+    Pc = float(calcular_pc(perfil_rugosidad, eje_x_rug))
     rk_core, rpk_peaks, rvk_valleys, mr1_ratio, mr2_ratio = calcular_parametros_rk(
         perfil_rugosidad, plot=True, filename=os.path.join(base_dir, 'curva_portancia_Rk.png')
     )
@@ -319,16 +361,19 @@ def procesar_carpeta(base_dir: str, apply_filter: bool = False, cutoff_mm: float
         'Rq (RMS)': f'{Rq:.3f} µm',
         'Rp (Pico Máximo)': f'{Rp:.3f} µm',
         'Rv (Valle Máximo)': f'{Rv:.3f} µm',
-        'Rz/Rt (Altura Total)': f'{Rz_Rt:.3f} µm',
+        'Rt (Altura Total del Perfil)': f'{Rt:.3f} µm',
         'Rz (ISO 4287:1997)': f'{Rz_ISO:.3f} µm',
         'Rsk (Asimetría)': f'{Rsk:.3f}',
         'Rku (Curtosis)': f'{Rku:.3f}',
         'RSm (Anchura Media de Elementos)': f'{RSm:.3f} µm',
-    'Rpk (Altura de picos que se desgastan)': f'{rpk_peaks:.3f} µm',
-    'Rk (Profundidad del núcleo funcional)': f'{rk_core:.3f} µm',
-    'Rvk (Profundidad de valles para lubricante)': f'{rvk_valleys:.3f} µm',
-    'Mr1 (%)': f'{mr1_ratio:.2f}',
-    'Mr2 (%)': f'{mr2_ratio:.2f}'
+        'Rdq (Pendiente RMS)': f'{Rdq:.3f} µm/mm',
+        'Rda (Pendiente Media Absoluta)': f'{Rda:.3f} µm/mm',
+        'Pc (Conteo de Picos)': f'{Pc:.2f} 1/mm',
+        'Rpk (Altura de picos que se desgastan)': f'{rpk_peaks:.3f} µm',
+        'Rk (Profundidad del núcleo funcional)': f'{rk_core:.3f} µm',
+        'Rvk (Profundidad de valles para lubricante)': f'{rvk_valleys:.3f} µm',
+        'Mr1 (%)': f'{mr1_ratio:.2f}',
+        'Mr2 (%)': f'{mr2_ratio:.2f}'
     }
     csv_path = os.path.join(base_dir, 'resultados_rugosidad.csv')
     exportar_resultados_csv(resultados, csv_path)
@@ -341,12 +386,15 @@ def procesar_carpeta(base_dir: str, apply_filter: bool = False, cutoff_mm: float
     print(f"  Rq: {Rq:.3f} µm\t(RMS)")
     print(f"  Rp: {Rp:.3f} µm\t(Pico Máximo)")
     print(f"  Rv: {Rv:.3f} µm\t(Valle Máximo)")
-    print(f"  Rz/Rt: {Rz_Rt:.3f} µm\t(Altura Total)")
+    print(f"  Rt: {Rt:.3f} µm\t(Altura Total del Perfil)")
     print(f"  Rz (ISO 4287:1997): {Rz_ISO:.3f} µm\t(Media de 5 segmentos)")
     print(f"  Rsk: {Rsk:.3f}\t(Asimetría)")
     print(f"  Rku: {Rku:.3f}\t(Curtosis)")
-    print("\nParámetros de Espaciado:")
+    print("\nParámetros de Espaciado y Pendiente:")
     print(f"  RSm: {RSm:.3f} µm\t(Anchura Media de Elementos)")
+    print(f"  Rdq: {Rdq:.3f} µm/mm\t(Pendiente RMS)")
+    print(f"  Rda: {Rda:.3f} µm/mm\t(Pendiente Media Absoluta)")
+    print(f"  Pc: {Pc:.2f} 1/mm\t(Conteo de Picos)")
     print("\nParámetros Funcionales (Familia Rk):")
     print(f"  Rpk: {rpk_peaks:.3f} µm\t(Altura de picos que se desgastan)")
     print(f"  Rk: {rk_core:.3f} µm\t(Profundidad del núcleo funcional)")
@@ -415,10 +463,13 @@ def procesar_carpeta(base_dir: str, apply_filter: bool = False, cutoff_mm: float
         Rq_f = float(np.sqrt(np.mean(rug_16610**2)))
         Rp_f = float(np.max(rug_16610))
         Rv_f = float(np.min(rug_16610))
-        Rz_Rt_f = float(Rp_f - Rv_f)
+        Rt_f = float(Rp_f - Rv_f)
         Rsk_f = float(stats.skew(rug_16610))
         Rku_f = float(stats.kurtosis(rug_16610, fisher=False))
         RSm_f = float(calcular_rsm(rug_16610, x_16610))
+        Rdq_f = float(calcular_rdq(rug_16610, x_16610))
+        Rda_f = float(calcular_rda(rug_16610, x_16610))
+        Pc_f = float(calcular_pc(rug_16610, x_16610))
         Rk_f, Rpk_f, Rvk_f, Mr1_f, Mr2_f = calcular_parametros_rk(
             rug_16610, plot=True, filename=os.path.join(base_dir, 'curva_portancia_Rk_16610.png')
         )
@@ -430,11 +481,14 @@ def procesar_carpeta(base_dir: str, apply_filter: bool = False, cutoff_mm: float
             'Rq (ISO 16610)': f'{Rq_f:.3f} µm',
             'Rp (ISO 16610)': f'{Rp_f:.3f} µm',
             'Rv (ISO 16610)': f'{Rv_f:.3f} µm',
-            'Rz/Rt (ISO 16610)': f'{Rz_Rt_f:.3f} µm',
+            'Rt (ISO 16610)': f'{Rt_f:.3f} µm',
             'Rz (ISO 4287:1997, perfil 16610)': f'{Rz_ISO_f:.3f} µm',
             'Rsk (ISO 16610)': f'{Rsk_f:.3f}',
             'Rku (ISO 16610)': f'{Rku_f:.3f}',
             'RSm (ISO 16610)': f'{RSm_f:.3f} µm',
+            'Rdq (ISO 16610)': f'{Rdq_f:.3f} µm/mm',
+            'Rda (ISO 16610)': f'{Rda_f:.3f} µm/mm',
+            'Pc (ISO 16610)': f'{Pc_f:.2f} 1/mm',
             'Rpk (ISO 13565-2, 16610)': f'{Rpk_f:.3f} µm',
             'Rk (ISO 13565-2, 16610)': f'{Rk_f:.3f} µm',
             'Rvk (ISO 13565-2, 16610)': f'{Rvk_f:.3f} µm',
@@ -477,9 +531,12 @@ def procesar_carpeta(base_dir: str, apply_filter: bool = False, cutoff_mm: float
         'Rq': Rq,
         'Rp': Rp,
         'Rv': Rv,
-        'Rz_Rt': Rz_Rt,
+        'Rt': Rt,
         'Rz_ISO': Rz_ISO,
         'RSm': RSm,
+        'Rdq': Rdq,
+        'Rda': Rda,
+        'Pc': Pc,
         'params': params or {},
     }
 

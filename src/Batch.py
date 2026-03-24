@@ -69,7 +69,11 @@ def main():
                 'Ra': result.get('Ra'),
                 'Rq': result.get('Rq'),
                 'Rz_ISO': result.get('Rz_ISO'),
+                'Rt': result.get('Rt'),
                 'RSm': result.get('RSm'),
+                'Rdq': result.get('Rdq'),
+                'Rda': result.get('Rda'),
+                'Pc': result.get('Pc'),
                 'Rpk': result.get('Rpk'),
                 'Rk': result.get('Rk'),
                 'Rvk': result.get('Rvk'),
@@ -94,7 +98,7 @@ def main():
     try:
         with open(out_csv_path, 'w', newline='', encoding='utf-8-sig') as fh:
             writer = csv.writer(fh)
-            writer.writerow(['folder', 'csv', 'Ra', 'Rq', 'Rz_ISO', 'RSm', 'Rpk', 'Rk', 'Rvk', 'Mr1', 'Mr2'])
+            writer.writerow(['folder', 'csv', 'Ra', 'Rq', 'Rz_ISO', 'Rt', 'RSm', 'Rdq', 'Rda', 'Pc', 'Rpk', 'Rk', 'Rvk', 'Mr1', 'Mr2'])
             for row in summary:
                 writer.writerow([
                     row.get('folder', ''),
@@ -102,7 +106,11 @@ def main():
                     row.get('Ra', ''),
                     row.get('Rq', ''),
                     row.get('Rz_ISO', ''),
+                    row.get('Rt', ''),
                     row.get('RSm', ''),
+                    row.get('Rdq', ''),
+                    row.get('Rda', ''),
+                    row.get('Pc', ''),
                     row.get('Rpk', ''),
                     row.get('Rk', ''),
                     row.get('Rvk', ''),
