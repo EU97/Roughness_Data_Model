@@ -6,7 +6,7 @@ Procesamiento de datos de rugosidad (ISO 4287:1997) e ISO 13565-2 con exportaci√
 
 ```powershell
 # 1) Crear/activar venv y deps
-python -m venv .venv; .\.venv\Scripts\Activate.ps1
+python -m venv .rough; .\.rough\Scripts\Activate.ps1
 pip install -r requirements.txt
 
 # 2) Un esp√©cimen (con filtrado ISO 16610 opcional)
