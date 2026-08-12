@@ -1,0 +1,135 @@
+:root {
+  --bg: #f4f7f5;
+  --card: #ffffff;
+  --ink: #10221a;
+  --muted: #4b6759;
+  --accent: #007a53;
+  --accent-2: #ffb100;
+  --line: #d8e2dc;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 0 0, #d8efe4, transparent 35%),
+    radial-gradient(circle at 100% 100%, #fff3d3, transparent 40%),
+    var(--bg);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.page {
+  width: min(960px, 92vw);
+  margin: 32px auto 48px;
+  display: grid;
+  gap: 20px;
+}
+
+.hero {
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: linear-gradient(135deg, #ffffff, #f2fff8);
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 12px;
+}
+
+h1 {
+  margin: 0;
+  line-height: 1.2;
+}
+
+.lead {
+  margin-bottom: 0;
+  color: var(--muted);
+}
+
+.panel {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+}
+
+.upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0 12px;
+}
+
+.upload input[type="file"] {
+  max-width: 100%;
+}
+
+.settings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.settings label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+}
+
+button {
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--accent);
+  color: #fff;
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+button:nth-child(2) {
+  background: #222;
+}
+
+.status {
+  margin-top: 12px;
+  color: var(--muted);
+}
+
+.summary {
+  margin: 0;
+  max-height: 320px;
+  overflow: auto;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  padding: 12px;
+  background: #fbfdfc;
+}
+
+@media (max-width: 640px) {
+  .page {
+    margin-top: 16px;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+}

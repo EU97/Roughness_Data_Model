@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Roughness Web Tool</title>
+  <meta name="description" content="Analisis de rugosidad en navegador sin backend.">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+  <main class="page">
+    <header class="hero">
+      <p class="eyebrow">Roughness Data Model</p>
+      <h1>Procesamiento de Rugosidad 100% en tu Dispositivo</h1>
+      <p class="lead">
+        Sube un ZIP con tus archivos tx1, tx2 y tx3. Esta herramienta organiza,
+        procesa y prepara resultados sin enviar tus datos a un servidor.
+      </p>
+    </header>
+
+    <section class="panel">
+      <h2>Carga de archivos</h2>
+      <label class="upload" for="zipInput">
+        <span>Seleccionar archivo ZIP</span>
+        <input id="zipInput" type="file" accept=".zip" />
+      </label>
+
+      <div class="settings">
+        <label>
+          <input id="applyFilter" type="checkbox" checked>
+          Aplicar filtro ISO 16610
+        </label>
+        <label>
+          Corte λc (mm)
+          <input id="cutoff" type="number" min="0.08" max="2.5" step="0.01" value="0.8">
+        </label>
+      </div>
+
+      <div class="actions">
+        <button id="runBtn" type="button">Procesar ZIP</button>
+        <button id="downloadBtn" type="button" disabled>Descargar resultados</button>
+      </div>
+
+      <p id="status" class="status">Esperando archivo ZIP...</p>
+    </section>
+
+    <section class="panel">
+      <h2>Resumen</h2>
+      <pre id="summary" class="summary">Aun no hay resultados.</pre>
+    </section>
+  </main>
+
+  <script type="module" src="assets/js/main.js"></script>
+</body>
+</html>
